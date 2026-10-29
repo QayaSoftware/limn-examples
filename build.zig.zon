@@ -4,7 +4,10 @@
     .version = "0.0.0",
     .minimum_zig_version = "0.16.0",
     .dependencies = .{
-        .limn = .{ .path = "../sdk/libs/limn" },
+        .limn = .{
+            .url = "git+https://github.com/Tofaa2/limn#bf5d7190aac8acdd937324f1cc1a6c9d070a4c65",
+            .hash = "limn-0.1.4-fNmdmSBjmwCiqACvk5R2AgkWTZLB-IK6viJioMO2lw-f",
+        },
         .glfw = .{
             .url = "git+https://github.com/glfw/glfw?ref=3.4#7b6aead9fb88b3623e3b3725ebb42670cbe4c579",
             .hash = "N-V-__8AAKE_TAAJO1RHyQ6MPZFPLLCAyHNu7iYXh7n1KEfH",
