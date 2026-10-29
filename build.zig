@@ -1,5 +1,5 @@
 const std = @import("std");
-const limn_build = @import("limn");
+const limn_build = @import("qaya").limn;
 
 const Shader = limn_build.Shader;
 
@@ -243,7 +243,7 @@ pub fn build(b: *std.Build) void {
     const optimize = b.standardOptimizeOption(.{});
     const thread_sanitizer = b.option(bool, "tsan", "Build with the thread sanitizer, with -Dtarget=x86_64-linux-gnu") orelse false;
     const android = target.result.abi.isAndroid();
-    const limn = b.dependency("limn", .{
+    const qaya = b.dependency("qaya", .{
         .target = target,
         .optimize = optimize,
         .tsan = thread_sanitizer,
@@ -253,9 +253,10 @@ pub fn build(b: *std.Build) void {
         .dlss_sdk = sdkPath(b, "dlss_sdk", "Where NVIDIA's DLSS SDK is (default: dlss_sdk)"),
         .nrd = b.option(bool, "nrd", "Build NVIDIA's NRD denoiser in, for path tracing (default: true where the SDK is found)"),
         .nrd_sdk = sdkPath(b, "nrd_sdk", "Where NVIDIA's NRD SDK is, built (default: nrd_sdk)"),
+        .slime = false,
     });
-    const renderer = limn.builder.modules.get("limn") orelse return;
-    const apk_packer = limn.builder.named_lazy_paths.get("apk") orelse return;
+    const renderer = qaya.builder.modules.get("limn") orelse return;
+    const apk_packer = qaya.builder.named_lazy_paths.get("apk") orelse return;
 
     const glfw_module = if (android) b.createModule(.{ .root_source_file = b.path("examples/android/glfw.zig"), .target = target, .optimize = optimize }) else glfw: {
         const glfw_source = b.lazyDependency("glfw", .{}) orelse return;
@@ -299,7 +300,7 @@ pub fn build(b: *std.Build) void {
             module.addImport("glfw", glfw_module);
             module.addImport("window", window_module);
         }
-        limn_build.addShaders(b, limn, module, example.shaders);
+        limn_build.addShaders(b, qaya, module, example.shaders);
         if (android) {
             if (example.windowed) if (addAndroidExample(b, example, module, glfw_module, target, optimize, apk_packer)) |packed_apk| b.getInstallStep().dependOn(packed_apk);
             continue;

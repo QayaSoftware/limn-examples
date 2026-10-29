@@ -4,9 +4,9 @@
     .version = "0.0.0",
     .minimum_zig_version = "0.16.0",
     .dependencies = .{
-        .limn = .{
-            .url = "git+https://github.com/Tofaa2/limn#bf5d7190aac8acdd937324f1cc1a6c9d070a4c65",
-            .hash = "limn-0.1.4-fNmdmSBjmwCiqACvk5R2AgkWTZLB-IK6viJioMO2lw-f",
+        .qaya = .{
+            .url = "git+https://github.com/QayaSoftware/sdk#20855ba354d4495128ea2db23a1bcb1196c08064",
+            .hash = "qaya-0.0.0-ZCvR_7mdnABRJGNoOsjnkN6FqOyYtngz2prKv4BudId3",
         },
         .glfw = .{
             .url = "git+https://github.com/glfw/glfw?ref=3.4#7b6aead9fb88b3623e3b3725ebb42670cbe4c579",

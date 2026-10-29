@@ -35,11 +35,11 @@ point; `zig build dlss-sdk` and `zig build nrd-sdk` in limn fetch them.
 
 ## Working on limn and the examples together
 
-The build depends on limn's published package. To build against a local
+The build depends on the SDK's published package. To build against a local
 checkout of the SDK instead:
 
 ```sh
-zig build --fork=../sdk/libs/limn
+zig build --fork=../sdk
 ```
 
 ## License
