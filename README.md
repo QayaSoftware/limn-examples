@@ -31,7 +31,7 @@ file.
 limn's options pass through: `-Dfidelityfx`, `-Ddlss`, `-Dnrd`,
 `-Dsystem_tools` and `-Dtsan`. DLSS and NRD are built in when their SDKs are
 at `dlss_sdk/` and `nrd_sdk/` here, or wherever `-Ddlss_sdk` and `-Dnrd_sdk`
-point; `zig build dlss-sdk` and `zig build nrd-sdk` in limn fetch them.
+point; `zig build limn-dlss-sdk` and `zig build limn-nrd-sdk` in the SDK fetch them.
 
 ## Working on limn and the examples together
 

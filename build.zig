@@ -1,5 +1,6 @@
 const std = @import("std");
-const limn_build = @import("qaya").limn;
+const qaya_build = @import("qaya");
+const limn_build = qaya_build.limn;
 
 const Shader = limn_build.Shader;
 
@@ -256,7 +257,7 @@ pub fn build(b: *std.Build) void {
         .slime = false,
     });
     const renderer = qaya.builder.modules.get("limn") orelse return;
-    const apk_packer = qaya.builder.named_lazy_paths.get("apk") orelse return;
+    const apk_packer = qaya.builder.named_lazy_paths.get("limn-apk") orelse return;
 
     const glfw_module = if (android) b.createModule(.{ .root_source_file = b.path("examples/android/glfw.zig"), .target = target, .optimize = optimize }) else glfw: {
         const glfw_source = b.lazyDependency("glfw", .{}) orelse return;
@@ -334,7 +335,7 @@ pub fn build(b: *std.Build) void {
         previous_cross = &cross.step;
         cross_step.dependOn(&cross.step);
     }
-    if (android) return limn_build.applyAndroidLibc(b);
+    if (android) return qaya_build.Sdk.applyAndroidLibc(b);
 
     for ([_]Shot{
         .{ .example = "particles", .name = "particles", .frames = "90" },
