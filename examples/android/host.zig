@@ -66,7 +66,7 @@ fn log(comptime level: std.log.Level, comptime scope: @EnumLiteral(), comptime f
 var threaded: std.Io.Threaded = undefined;
 var arena: std.heap.ArenaAllocator = undefined;
 var environ_map: std.process.Environ.Map = undefined;
-var thread: ?std.Thread = null;
+var task: ?std.Io.Future(void) = null;
 const argv = [_][*:0]const u8{"limn"};
 
 export fn ANativeActivity_onCreate(activity: Activity, _: ?*anyopaque, _: usize) void {
@@ -75,13 +75,13 @@ export fn ANativeActivity_onCreate(activity: Activity, _: ?*anyopaque, _: usize)
     activity.callbacks.on_input_queue_created = queueCreated;
     activity.callbacks.on_input_queue_destroyed = queueDestroyed;
     activity.callbacks.on_destroy = destroyed;
-    if (thread != null) return;
+    if (task != null) return;
     const gpa = std.heap.c_allocator;
     threaded = .init(gpa, .{});
     glfw.app.io = threaded.io();
     arena = .init(std.heap.page_allocator);
     environ_map = .init(gpa);
-    thread = std.Thread.spawn(.{}, run, .{activity}) catch |err| {
+    task = glfw.app.io.concurrent(run, .{activity}) catch |err| {
         std.log.err("could not start the example: {t}", .{err});
         return;
     };
