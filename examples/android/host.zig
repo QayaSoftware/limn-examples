@@ -53,7 +53,7 @@ pub const std_options: std.Options = .{ .logFn = log };
 fn log(comptime level: std.log.Level, comptime scope: @EnumLiteral(), comptime format: []const u8, args: anytype) void {
     var buffer: [2048]u8 = undefined;
     const prefix = if (scope == .default) "" else @tagName(scope) ++ ": ";
-    const text = std.fmt.bufPrintZ(&buffer, prefix ++ format, args) catch buffer[0 .. buffer.len - 1 :0];
+    const text = std.fmt.bufPrintSentinel(&buffer, prefix ++ format, args, 0) catch buffer[0 .. buffer.len - 1 :0];
     const priority: c_int = switch (level) {
         .err => 6,
         .warn => 5,
@@ -117,7 +117,7 @@ fn unpackAssets(activity: Activity) !void {
     var lines = std.mem.tokenizeScalar(u8, names, '\n');
     var name_buffer: [std.fs.max_path_bytes]u8 = undefined;
     while (lines.next()) |name| {
-        const asset = AAssetManager_open(activity.asset_manager, try std.fmt.bufPrintZ(&name_buffer, "{s}", .{name}), 3) orelse continue;
+        const asset = AAssetManager_open(activity.asset_manager, try std.fmt.bufPrintSentinel(&name_buffer, "{s}", .{name}, 0), 3) orelse continue;
         defer AAsset_close(asset);
         const bytes = assetBytes(asset) orelse continue;
         if (directory.statFile(io, name, .{})) |stat| {

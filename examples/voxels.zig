@@ -230,7 +230,7 @@ const Voxels = struct {
                         for (0..height) |row| @memset(faces[j + row][i .. i + width], .air);
                         const plane: f32 = @floatFromInt(if (sign > 0) slice + 1 else slice);
                         const surface = if (material == .water) sea else land;
-                        try surface.addQuad(gpa, axis, sign, plane, .{ @floatFromInt(i), @floatFromInt(j) }, .{ @floatFromInt(i + width), @floatFromInt(j + height) }, palette[@intFromEnum(material)]);
+                        try surface.addQuad(gpa, axis, sign, plane, .{ @floatFromInt(i), @floatFromInt(j) }, .{ @floatFromInt(i + width), @floatFromInt(j + height) }, palette[@backingInt(material)]);
                         i += width;
                     }
                 }

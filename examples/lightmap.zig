@@ -97,7 +97,7 @@ pub fn main(init: std.process.Init) !void {
     try renderer.waitUntilLoaded();
     var entities: [slabs.len]gfx.Entity = undefined;
     for (slabs, &entities) |slab, *entity| entity.* = try renderer.entities.create(scene, .{
-        .model = models[@intFromEnum(slab.color)],
+        .model = models[@backingInt(slab.color)],
         .transform = math.mul(math.translation(slab.center), math.mul(math.rotationY(slab.turn), math.scaling(slab.size))),
     });
 

@@ -66,9 +66,9 @@ pub const Window = struct {
     }
 
     fn native(self: Window) !gfx.rhi.NativeWindow {
-        if (comptime builtin.abi.isAndroid()) return .{ .android = .{ .window = glfw.androidWindow() orelse return error.NativeWindowUnavailable } };
-        if (comptime builtin.os.tag == .macos) return .{ .metal = .{ .layer = try metalLayer(glfw.glfwGetCocoaWindow(self.handle) orelse return error.NativeWindowUnavailable) } };
-        if (comptime builtin.os.tag == .windows) return .{ .win32 = .{
+        if (comptime builtin.target.abi.isAndroid()) return .{ .android = .{ .window = glfw.androidWindow() orelse return error.NativeWindowUnavailable } };
+        if (comptime builtin.target.os.tag == .macos) return .{ .metal = .{ .layer = try metalLayer(glfw.glfwGetCocoaWindow(self.handle) orelse return error.NativeWindowUnavailable) } };
+        if (comptime builtin.target.os.tag == .windows) return .{ .win32 = .{
             .instance = @ptrCast(glfw.GetModuleHandleW(null)),
             .window = @ptrCast(glfw.glfwGetWin32Window(self.handle) orelse return error.NativeWindowUnavailable),
         } };
@@ -223,7 +223,7 @@ pub const Stage = struct {
     pub fn create(init: std.process.Init, title: [:0]const u8, options: gfx.Options) !Stage {
         var frame_limit: ?u64 = null;
         var screenshot: ?[]const u8 = null;
-        var debug_names = builtin.mode == .Debug;
+        var debug_names = builtin.mode == .debug;
         var validation = false;
         var timings = false;
         var uneven = false;
@@ -291,7 +291,7 @@ pub const Stage = struct {
         if (self.window) |window| {
             if (window.shouldClose() or window.keyDown(glfw.GLFW_KEY_ESCAPE)) return null;
             window.pollEvents();
-            if (comptime builtin.abi.isAndroid()) if (!self.followSurface(window)) return null;
+            if (comptime builtin.target.abi.isAndroid()) if (!self.followSurface(window)) return null;
             const now = window.time();
             tick.dt = @floatCast(@min(now - self.last, 0.1));
             self.last = now;
@@ -377,7 +377,7 @@ pub const Stage = struct {
 
     fn logMemory(self: *Stage) void {
         const frame_stats = self.renderer.stats();
-        const peak = if (comptime builtin.os.tag == .windows) 0 else std.posix.getrusage(std.posix.rusage.SELF).maxrss;
+        const peak = if (comptime builtin.target.os.tag == .windows) 0 else std.posix.getrusage(std.posix.rusage.SELF).maxrss;
         var statm: [128]u8 = undefined;
         const resident: u64 = if (std.Io.Dir.cwd().readFile(self.init.io, "/proc/self/statm", &statm)) |text| blk: {
             var fields = std.mem.tokenizeScalar(u8, text, ' ');

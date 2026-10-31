@@ -6,7 +6,7 @@ picture in limn's README is one of them.
 
 ## Build
 
-Requires Zig 0.16 and a Vulkan 1.3 driver. The assets are stored with Git
+Requires Zig 0.17 and a Vulkan 1.3 driver. The assets are stored with Git
 LFS: run `git lfs install` before cloning, or `git lfs pull` afterwards.
 Everything else is fetched by the build: limn, GLFW and its platform headers,
 the macOS SDK headers, MoltenVK and the Android NDK.
@@ -24,7 +24,7 @@ For `-Dtarget=aarch64-linux-android` each example becomes an APK in
 `zig-out/apk`, signed with a fixed debug key: `adb install` it. macOS
 builds put `libMoltenVK.dylib` beside the examples.
 
-Add `-Doptimize=ReleaseFast` for full speed. Every example takes `--frames N`
+Add `-Doptimize=fast` for full speed. Every example takes `--frames N`
 and `--screenshot file.png`, and lists its keys at the top of its source
 file.
 

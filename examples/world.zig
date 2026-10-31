@@ -225,8 +225,8 @@ pub fn main(init: std.process.Init) !void {
         last_time = now;
 
         if (keys.pressed(window, glfw.GLFW_KEY_TAB)) {
-            const count = @typeInfo(gfx.DebugView).@"enum".fields.len;
-            settings.debug_view = @enumFromInt((@intFromEnum(settings.debug_view) + 1) % count);
+            const count = @typeInfo(gfx.DebugView).@"enum".field_names.len;
+            settings.debug_view = @fromBackingInt(@intCast((@backingInt(settings.debug_view) + 1) % count));
         }
         if (keys.pressed(window, glfw.GLFW_KEY_T)) settings.resolution.temporal_antialiasing = !settings.resolution.temporal_antialiasing;
         if (keys.pressed(window, glfw.GLFW_KEY_H)) show_hud = !show_hud;

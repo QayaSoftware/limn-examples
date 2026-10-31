@@ -283,9 +283,10 @@ pub fn build(b: *std.Build) void {
         const moltenvk = b.lazyDependency("moltenvk", .{}) orelse return;
         const dylib = moltenvk.path("MoltenVK/dynamic/dylib/macOS/libMoltenVK.dylib");
         b.getInstallStep().dependOn(&b.addInstallBinFile(dylib, "libMoltenVK.dylib").step);
-        moltenvk_dir = moltenvk.path("MoltenVK/dynamic/dylib/macOS").getPath(b);
+        moltenvk_dir = qaya_build.Sdk.absolutePath(moltenvk.builder, "MoltenVK/dynamic/dylib/macOS");
     }
-    const nixos = if (b.build_root.handle.access(b.graph.io, nixos_drivers, .{})) |_| true else |_| false;
+    const nixos = if (std.Io.Dir.cwd().access(b.graph.io, nixos_drivers, .{})) |_| true else |_| false;
+    if (nixos) b.dependOnDirectoryMetadata(.{ .cwd_relative = nixos_drivers });
 
     const check_step = b.step("check", "Compile the examples without running them");
     var example_exes: std.StringHashMapUnmanaged(*std.Build.Step.Compile) = .empty;
@@ -314,7 +315,7 @@ pub fn build(b: *std.Build) void {
         run.setCwd(b.path("."));
         if (nixos) run.setEnvironmentVariable("LD_LIBRARY_PATH", b.fmt("{s}:{s}", .{ b.graph.environ_map.get("LD_LIBRARY_PATH") orelse "", nixos_drivers }));
         if (moltenvk_dir) |dir| run.setEnvironmentVariable("DYLD_LIBRARY_PATH", dir);
-        if (b.args) |args| run.addArgs(args);
+        run.addPassthruArgs();
         b.step(example.name, example.description).dependOn(&run.step);
         if (std.mem.eql(u8, example.name, "meadow")) b.step("run", example.description).dependOn(&run.step);
     }
@@ -328,7 +329,7 @@ pub fn build(b: *std.Build) void {
     const cross_step = b.step("cross", "Build the examples for every target, into zig-out/cross/<target>, without running them");
     var previous_cross: ?*std.Build.Step = null;
     for (cross_targets) |cross_target| {
-        const cross = b.addSystemCommand(&.{ b.graph.zig_exe, "build", "install", b.fmt("-Dtarget={s}", .{cross_target}), "--prefix", b.pathFromRoot(b.fmt("zig-out/cross/{s}", .{cross_target})) });
+        const cross = b.addSystemCommand(&.{ b.graph.zig_exe, "build", "install", b.fmt("-Dtarget={s}", .{cross_target}), "--prefix", b.fmt("zig-out/cross/{s}", .{cross_target}) });
         cross.setCwd(b.path("."));
         cross.has_side_effects = true;
         if (previous_cross) |previous| cross.step.dependOn(previous);
@@ -375,7 +376,7 @@ pub fn build(b: *std.Build) void {
         run.has_side_effects = true;
         run.addArgs(shot.arguments);
         run.addArgs(&.{ "--frames", shot.frames, "--screenshot" });
-        _ = run.addOutputFileArg(b.fmt("verify_{s}.png", .{shot.name}));
+        _ = run.addOutputFileArg2(b.fmt("verify_{s}.png", .{shot.name}), .{});
         verify_step.dependOn(&run.step);
     }
 }
@@ -383,7 +384,7 @@ pub fn build(b: *std.Build) void {
 /// A path option resolved against this build's root, so the SDKs can sit
 /// beside the examples or anywhere else.
 fn sdkPath(b: *std.Build, name: []const u8, description: []const u8) []const u8 {
-    return b.pathResolve(&.{ b.build_root.path orelse ".", b.option([]const u8, name, description) orelse name });
+    return b.pathResolve(&.{ qaya_build.Sdk.absolutePath(b, ""), b.option([]const u8, name, description) orelse name });
 }
 
 /// Builds GLFW from source into `module` for `target`, with the platform
@@ -433,10 +434,10 @@ fn addGlfw(b: *std.Build, module: *std.Build.Module, target: std.Build.ResolvedT
 /// Wraps a windowed example as an Android `NativeActivity` and packs it,
 /// with the assets its source names, into zig-out/apk/<name>.apk. Null for
 /// an example whose assets would make the package over `android_asset_limit`.
-fn addAndroidExample(b: *std.Build, example: Example, module: *std.Build.Module, glfw_module: *std.Build.Module, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode, packer: std.Build.LazyPath) ?*std.Build.Step {
+fn addAndroidExample(b: *std.Build, example: Example, module: *std.Build.Module, glfw_module: *std.Build.Module, target: std.Build.ResolvedTarget, optimize: std.lang.Optimize, packer: std.Build.LazyPath) ?*std.Build.Step {
     const assets = exampleAssets(b, example);
     var bytes: u64 = 0;
-    for (assets) |asset| bytes += if (b.build_root.handle.statFile(b.graph.io, asset, .{})) |stat| stat.size else |_| 0;
+    for (assets) |asset| bytes += if (b.root.statFile(b.graph.io, asset)) |stat| stat.size else |_| 0;
     if (bytes > android_asset_limit) return null;
     const host = b.createModule(.{ .root_source_file = b.path("examples/android/host.zig"), .target = target, .optimize = optimize, .link_libc = true });
     host.addImport("example", module);
@@ -444,30 +445,33 @@ fn addAndroidExample(b: *std.Build, example: Example, module: *std.Build.Module,
     for ([_][]const u8{ "android", "log", "dl" }) |system| host.linkSystemLibrary(system, .{});
     const library = b.addLibrary(.{ .name = "main", .linkage = .dynamic, .root_module = host, .use_llvm = true });
     const pack = std.Build.Step.Run.create(b, b.fmt("pack {s}.apk", .{example.name}));
-    pack.addFileArg(packer);
-    const apk = pack.addOutputFileArg(b.fmt("{s}.apk", .{example.name}));
+    pack.addFileArg2(packer, .{});
+    const apk = pack.addOutputFileArg2(b.fmt("{s}.apk", .{example.name}), .{});
     pack.addArgs(&.{ b.fmt("org.limn.{s}", .{example.name}), b.fmt("limn {s}", .{example.name}) });
-    if (target.result.cpu.arch == .x86_64) pack.addPrefixedFileArg("x86_64:", library.getEmittedBin()) else pack.addFileArg(library.getEmittedBin());
+    if (target.result.cpu.arch == .x86_64) pack.addFileArg2(library.getEmittedBin(), .{ .prefix = "x86_64:" }) else pack.addFileArg2(library.getEmittedBin(), .{});
     for (assets) |asset| {
         pack.addArg(b.fmt("assets/{s}", .{asset}));
-        pack.addFileArg(b.path(asset));
+        pack.addFileArg2(b.path(asset), .{});
     }
     const install = b.addInstallFile(apk, b.fmt("apk/{s}.apk", .{example.name}));
     return &install.step;
 }
 
 /// The files under examples/assets that an example's source, or a source
-/// file next to it that it imports, names; a named directory gives all of
-/// its files, and so does the folder of a named `.gltf`, for its buffers and
-/// images.
+/// file next to it that it imports, names and that are there, as optional
+/// downloads may not be. A named directory gives all of its files, and so
+/// does the folder of a named `.gltf`, for its buffers and images. The files
+/// are read while configuring, so a build that packs APKs is configured
+/// afresh every time.
 fn exampleAssets(b: *std.Build, example: Example) []const []const u8 {
     const io = b.graph.io;
+    b.graph.poisonCache();
     var assets: std.ArrayList([]const u8) = .empty;
     var sources: std.ArrayList([]const u8) = .empty;
     sources.appendSlice(b.allocator, &.{ example.root, "examples/window.zig" }) catch @panic("OOM");
     var read: usize = 0;
     while (read < sources.items.len) : (read += 1) {
-        const text = b.build_root.handle.readFileAlloc(io, sources.items[read], b.allocator, .unlimited) catch continue;
+        const text = b.root.root_dir.handle.readFileAlloc(io, sources.items[read], b.allocator, .unlimited) catch continue;
         var quoted = std.mem.splitScalar(u8, text, '"');
         var inside = false;
         while (quoted.next()) |piece| : (inside = !inside) {
@@ -482,10 +486,11 @@ fn exampleAssets(b: *std.Build, example: Example) []const []const u8 {
             if (!std.mem.startsWith(u8, piece, "examples/assets/")) continue;
             const folder = if (std.mem.endsWith(u8, piece, ".gltf")) piece[0 .. std.mem.lastIndexOfScalar(u8, piece, '/').? + 1] else piece;
             if (!std.mem.endsWith(u8, folder, "/")) {
+                b.root.root_dir.handle.access(io, piece, .{}) catch continue;
                 appendNew(b, &assets, piece);
                 continue;
             }
-            var directory = b.build_root.handle.openDir(io, folder, .{ .iterate = true }) catch continue;
+            var directory = b.root.root_dir.handle.openDir(io, folder, .{ .iterate = true }) catch continue;
             defer directory.close(io);
             var walker = directory.walk(b.allocator) catch @panic("OOM");
             defer walker.deinit();

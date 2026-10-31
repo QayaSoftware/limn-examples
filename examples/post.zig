@@ -90,7 +90,7 @@ pub fn main(init: std.process.Init) !void {
     while (stage.begin()) |tick| {
         for (names, 0..) |entry, index| {
             if (stage.keyPressed(entry.code)) {
-                const effect: Effect = @enumFromInt(index);
+                const effect: Effect = @fromBackingInt(@intCast(index));
                 on.set(effect, !on.get(effect));
             }
         }
@@ -132,7 +132,7 @@ pub fn main(init: std.process.Init) !void {
         try list.text(font, try std.fmt.bufPrint(&hud_buffer, "{d:.0} fps · gpu {d:.2} ms", .{ stage.fps, stage.gpu_ms }), .{ 24, 20 }, .{ .size = 16 });
         for (names, 0..) |entry, index| {
             const y = 46 + 19 * @as(f32, @floatFromInt(index));
-            const lit = on.get(@enumFromInt(index));
+            const lit = on.get(@fromBackingInt(@intCast(index)));
             try list.text(font, entry.key, .{ 24, y }, .{ .size = 14, .color = gfx.Color.hex(0x9aa7d0) });
             try list.text(font, entry.name, .{ 50, y }, .{ .size = 14 });
             try list.text(font, if (lit) "on" else "off", .{ 250, y }, .{ .size = 14, .color = if (lit) gfx.Color.hex(0x3ddc97) else gfx.Color.hex(0x7c8499) });
