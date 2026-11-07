@@ -11,6 +11,8 @@
 //!   --frames N       frames in each timed phase (default 300)
 //!   --out file       write the results, tab separated
 //!   --compare file   print each pass against an earlier `--out`
+//!   --validation     turn the Vulkan validation layers on, and fail on any
+//!                    error they report (timings are then not comparable)
 //!
 //! Phases:
 //!   warmup   the first frames after loading, while probes are first traced
@@ -206,6 +208,7 @@ pub fn main(init: std.process.Init) !void {
     var timed_frames: u32 = 300;
     var out_path: ?[]const u8 = null;
     var compare_path: ?[]const u8 = null;
+    var validation = false;
     var arguments = try init.minimal.args.iterateAllocator(gpa);
     defer arguments.deinit();
     _ = arguments.skip();
@@ -222,6 +225,8 @@ pub fn main(init: std.process.Init) !void {
             timed_frames = try std.fmt.parseInt(u32, arguments.next() orelse return error.MissingArgument, 10);
         } else if (std.mem.eql(u8, argument, "--out")) {
             out_path = arguments.next() orelse return error.MissingArgument;
+        } else if (std.mem.eql(u8, argument, "--validation")) {
+            validation = true;
         } else if (std.mem.eql(u8, argument, "--compare")) {
             compare_path = arguments.next() orelse return error.MissingArgument;
         } else return error.InvalidArgument;
@@ -233,6 +238,7 @@ pub fn main(init: std.process.Init) !void {
 
     const renderer = try gfx.Renderer.init(gpa, io, .{
         .application_name = "Limn bench",
+        .validation = validation,
         .ray_tracing = .{ .software_path_tracing = true },
         .cache = .{ .assets = "zig-out/asset-cache", .pipelines = "zig-out/pipeline.cache" },
         .textures = .{ .streaming = .{ .budget_bytes = 2 << 30 } },
@@ -312,6 +318,7 @@ pub fn main(init: std.process.Init) !void {
         if (phase == null and results.getPtr(.steady).frames.items.len == 0) settling = true;
     }
     try renderer.device.waitIdle();
+    if (renderer.device.validationErrorCount() != 0) return error.ValidationFailed;
 
     const all = try rows(gpa, &results);
     defer gpa.free(all);
