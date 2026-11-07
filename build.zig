@@ -208,6 +208,12 @@ const examples: []const Example = &.{
         .windowed = true,
     },
     .{
+        .name = "bench",
+        .root = "examples/bench.zig",
+        .description = "GPU time of each pass in Emerald Square during warm-up, at rest and in flight, without a window",
+        .windowed = false,
+    },
+    .{
         .name = "upscaling",
         .root = "examples/upscaling.zig",
         .description = "Drawing fewer pixels: bicubic, temporal and FidelityFX upscaling, and coarse shading",
