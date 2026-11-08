@@ -21,6 +21,8 @@ const Example = struct {
     description: []const u8,
     windowed: bool,
     shaders: []const Shader = &.{},
+    /// Other SDK libraries the example imports, by module name.
+    libraries: []const []const u8 = &.{},
 };
 
 const examples: []const Example = &.{
@@ -196,6 +198,13 @@ const examples: []const Example = &.{
         .windowed = true,
     },
     .{
+        .name = "asteroids_game",
+        .root = "examples/asteroids_game.zig",
+        .description = "A game of Asteroids: photographed moon rocks, an ECS, rebindable controls and sound",
+        .windowed = true,
+        .libraries = &.{ "slime", "keybinds", "audio" },
+    },
+    .{
         .name = "shadows",
         .root = "examples/shadows.zig",
         .description = "Virtual shadow maps beside the sun's cascades, down a long avenue of fine shadows",
@@ -260,7 +269,6 @@ pub fn build(b: *std.Build) void {
         .dlss_sdk = sdkPath(b, "dlss_sdk", "Where NVIDIA's DLSS SDK is (default: dlss_sdk)"),
         .nrd = b.option(bool, "nrd", "Build NVIDIA's NRD denoiser in, for path tracing (default: true where the SDK is found)"),
         .nrd_sdk = sdkPath(b, "nrd_sdk", "Where NVIDIA's NRD SDK is, built (default: nrd_sdk)"),
-        .slime = false,
     });
     const renderer = qaya.builder.modules.get("limn") orelse return;
     const apk_packer = qaya.builder.named_lazy_paths.get("limn-apk") orelse return;
@@ -304,6 +312,7 @@ pub fn build(b: *std.Build) void {
             .sanitize_thread = thread_sanitizer,
         });
         module.addImport("limn", renderer);
+        for (example.libraries) |library| module.addImport(library, qaya.builder.modules.get(library) orelse return);
         if (example.windowed) {
             module.addImport("glfw", glfw_module);
             module.addImport("window", window_module);
@@ -358,6 +367,7 @@ pub fn build(b: *std.Build) void {
         .{ .example = "lightmap", .name = "lightmap", .frames = "30" },
         .{ .example = "voxels", .name = "voxels", .frames = "30" },
         .{ .example = "asteroids", .name = "asteroids", .frames = "30" },
+        .{ .example = "asteroids_game", .name = "asteroids_game", .frames = "150", .arguments = &.{ "--demo", "1" } },
         .{ .example = "shadows", .name = "virtual_shadows", .frames = "30", .arguments = &.{ "--vsm", "1" } },
         .{ .example = "upscaling", .name = "fsr2", .frames = "30", .arguments = &.{ "--mode", "4" } },
         .{ .example = "upscaling", .name = "fsr3", .frames = "30", .arguments = &.{ "--mode", "5" } },

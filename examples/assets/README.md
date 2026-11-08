@@ -102,3 +102,25 @@ That repository is a lightly edited copy of the scene from NVIDIA's
 rtxdi-assets, under the MIT license. The scene itself is by Amazon
 Lumberyard, released under CC BY 4.0 through NVIDIA's Open Research Content
 Archive.
+
+`asteroids_game/` holds the `asteroids_game` example's assets, each converted
+from its source in Blender: models joined into one mesh, centered and scaled,
+and saved as GLB; sounds converted to 16-bit mono WAV.
+
+- `rock_1.glb` to `rock_7.glb` are Moon Rock 01 to 07 from Poly Haven, by Greg
+  Zaal, Rico Cilliers, Jenelle van Heerden and Dario Barresi, with their 2K
+  textures, released under CC0:
+  https://polyhaven.com/models/moon_rock_01 (to `moon_rock_07`)
+- `ship.glb` is the Spaceship by Quaternius on Poly Pizza, released under CC0:
+  https://poly.pizza/m/uCeLfsdmNP
+- `planet.glb` is a sphere wearing Solar System Scope's 2K Jupiter texture,
+  released under CC BY 4.0: https://www.solarsystemscope.com/textures/
+- `starfield_4k.hdr` is NASA's Deep Star Maps 2020 (`starmap_2020_4k.exr`,
+  NASA/Goddard Space Flight Center Scientific Visualization Studio), public
+  domain: https://svs.gsfc.nasa.gov/4851
+- `sounds/` are from Kenney's Sci-fi Sounds, released under CC0:
+  https://opengameart.org/content/sci-fi-sounds
+  (`shoot` laserSmall_001, `break_small` explosionCrunch_000, `break_medium`
+  explosionCrunch_002, `break_large` lowFrequency_explosion_000, `ship_lost`
+  lowFrequency_explosion_001, `thrust` thrusterFire_000, `respawn`
+  forceField_000)

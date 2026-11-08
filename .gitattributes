@@ -4,3 +4,4 @@ examples/assets/**/*.ktx2 filter=lfs diff=lfs merge=lfs -text
 examples/assets/**/*.ttf filter=lfs diff=lfs merge=lfs -text
 examples/assets/**/*.png filter=lfs diff=lfs merge=lfs -text
 examples/assets/**/*.bin filter=lfs diff=lfs merge=lfs -text
+examples/assets/**/*.wav filter=lfs diff=lfs merge=lfs -text
