@@ -312,7 +312,7 @@ pub fn build(b: *std.Build) void {
             .sanitize_thread = thread_sanitizer,
         });
         module.addImport("limn", renderer);
-        for (example.libraries) |library| module.addImport(library, qaya.builder.modules.get(library) orelse return);
+        for (example.libraries) |library| module.addImport(library, qaya.builder.modules.get(library) orelse std.debug.panic("{s}: no SDK library named {s}", .{ example.name, library }));
         if (example.windowed) {
             module.addImport("glfw", glfw_module);
             module.addImport("window", window_module);

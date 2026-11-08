@@ -5,8 +5,8 @@
     .minimum_zig_version = "0.17.0",
     .dependencies = .{
         .qaya = .{
-            .url = "git+https://github.com/QayaSoftware/sdk#9408b52516c9df7f59a0665e4f04b9cdb6cfcbb6",
-            .hash = "qaya-0.0.0-ZCvR_8PQpwCjEPLOMZ6FJYhFtvBo6J-hgtgqZ6t13B7k",
+            .url = "git+https://github.com/QayaSoftware/sdk#a5d62f89a33ce915c3a54defc22e5b4ebae73c2a",
+            .hash = "qaya-0.0.0-ZCvR_4LQpwAUzMCZHPyUJw7Jm7OsKya8glnerCoI9_83",
         },
         .glfw = .{
             .url = "git+https://github.com/glfw/glfw?ref=3.4#7b6aead9fb88b3623e3b3725ebb42670cbe4c579",
